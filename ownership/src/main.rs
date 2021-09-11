@@ -27,6 +27,22 @@ fn change(some_string: &mut String) {
 	some_string.push_str(", world");
 }
 
+fn no_dangle() -> String {
+	let s = String::from("hello");
+	s
+}
+
+fn first_word(s: &str) -> &str {
+	let bytes = s.as_bytes();
+	
+	for (i, &item) in bytes.iter().enumerate() {
+		if item == b' ' {
+			return &s[..i];
+		}
+	}
+	&s[..]
+}
+
 fn main() {
 	let s1 = String::from("hello");
 	
@@ -51,7 +67,7 @@ fn main() {
     
     let mut s = String::from("hello");
     change(&mut s);
-    println!("{}", s);
+    println!("first word: {}", s);
     let r1 = &s; // no problem
     let r2 = &s; // no problem
     println!("{} and {}", r1, r2);
@@ -59,6 +75,43 @@ fn main() {
     
     let r3 = &mut s; // no problem
     println!("{}", r3);
+    
+    let mut s = String::from("hello world");
+    
+    let word = first_word(&s); // word will get the value 5
+    
+    println!("{}", word);
+    
+    s.clear(); // this empties the String, making it equal to ""
+    
+    // word still has the value 5 here, but there's no more string that
+    // we could meaningfully use the value !( with. word is now totally invalid!
+    
+    no_dangle();
+    
+    let s = String::from("hello");
+    let slice = &[0..2];
+    let slice = &s[..2];
+    let slice = &s[..];
+    
+    let my_string = String::from("hello world");
+    
+    // first_word works on slices of string literals
+    let word = first_word(&my_string[..]);
+    
+    let my_string_literal = "hello world";
+    
+    // first_word works on slices of string literals
+    let word = first_word(&my_string_literal[..]);
+    
+    // Because string literals *are* string slices already,
+    // this works too, without the slice syntax!
+    
+    let a = [1, 2, 3, 4, 5];
+    
+    let slice = &a[1..3];
+    
+    assert_eq!(slice, &[2, 3]);
 } // Here, x goes out of scope, then s. But because s's value was moved, nothing
 	// special happens.
 	// Here, s3 goes out the scope and is dropped. s2 goes out of scope but was
